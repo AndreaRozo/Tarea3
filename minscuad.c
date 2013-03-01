@@ -21,8 +21,8 @@ int main (int argc, char **argv)
   int nc = 3;
   int t = 0;
   int p = 1;
-  int i,j,a=0;
-  double x,y,z=0;
+  int i,j,a;
+  double x,y,z;
   
   tiempo = load_data(archivo, &n_filas, t);
   posicion = load_data(archivo, &n_filas, p);
@@ -49,16 +49,17 @@ int main (int argc, char **argv)
   gsl_matrix *prod = gsl_matrix_calloc(nc,nc);
   for (i=0;i<nc;i++)
   {
-	z = 0;
-	for (j=0;j<n_filas;j++)
+	for (j=0;j<nc;j++)
 	{
-		x = gsl_matrix_get(G_T,i,j);
-		y = gsl_matrix_get(G,j,i);
-		z = z+x*y;
+		z = 0;
+		for (a=0;a<n_filas;a++)
+		{
+			x = gsl_matrix_get(G_T,i,a);
+			y = gsl_matrix_get(G,a,j);
+			z += x*y;
+		}
+		gsl_matrix_set(prod,i,j,z);
 	}
-	
-	gsl_matrix_set(prod,i,a,z);
-	a++;
   }
 
   //Cálculo de la inversa de (G_T*G)
@@ -80,7 +81,7 @@ int main (int argc, char **argv)
 		{
 			x = gsl_matrix_get(invProd,i,a);
 			y = gsl_matrix_get(G_T,a,j);
-			z = z+x*y;
+			z += x*y;
 		}
 		gsl_matrix_set(prod2,i,j,z);
 	}
@@ -95,7 +96,7 @@ int main (int argc, char **argv)
 	{
 		x = gsl_matrix_get(prod2,i,j);
 		y = gsl_vector_get(d,j);
-		z = z+x*y;
+		z += x*y;
 	}
 	
 	gsl_vector_set(m,i,z);
@@ -123,16 +124,16 @@ int main (int argc, char **argv)
     in = fopen(filein,"r");
     if (!in)
     {
-	    printf("problems opening the file %s\n", filein);
+	printf("problems opening the file %s\n", filein);
         exit(1);
     }
     
     do
     {
-		c = fgetc(in);
-	    if(c=='\n')
-	    {
-	    	nf++;
+	c = fgetc(in);
+	if(c=='\n')
+	{
+		nf++;
         }
     } while(c!=EOF);
     
