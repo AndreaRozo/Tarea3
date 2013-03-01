@@ -18,17 +18,19 @@ int main (int argc, char **argv)
   double *tiempo, *posicion;
   int n_filas = 0;
   int n_columnas = 2;
+  int nc = 3;
   int t = 0;
   int p = 1;
-  int i,j;
-  double x,y;
+  int i,j,a=0;
+  double x,y,z=0;
   
   tiempo = load_data(archivo, &n_filas, t);
   posicion = load_data(archivo, &n_filas, p);
 
-  gsl_matrix *G = gsl_matrix_calloc(n_filas,3);
+  //Creación de las matrices y vectores empleados en la regresión
+  gsl_matrix *G = gsl_matrix_calloc(n_filas,nc);
   gsl_vector *d = gsl_vector_calloc(n_filas);
-  gsl_matrix *G_T = gsl_matrix_calloc(3,n_filas);
+  gsl_matrix *G_T = gsl_matrix_calloc(nc,n_filas);
 
   for (i=0;i<n_filas;i++)
   {
@@ -43,15 +45,70 @@ int main (int argc, char **argv)
 	gsl_matrix_set(G_T,2,i,0.5*tiempo[i]*tiempo[i]);
   }
   
-  gsl_matrix *prod = gsl_calloc(3,3);
-  for (i=0;i<3;i++)
+  //Cálculo del producto de G_T*G
+  gsl_matrix *prod = gsl_matrix_calloc(nc,nc);
+  for (i=0;i<nc;i++)
   {
+	z = 0;
 	for (j=0;j<n_filas;j++)
 	{
 		x = gsl_matrix_get(G_T,i,j);
 		y = gsl_matrix_get(G,j,i);
+		z = z+x*y;
+	}
+	
+	gsl_matrix_set(prod,i,a,z);
+	a++;
+  }
+
+  //Cálculo de la inversa de (G_T*G)
+  gsl_permutation *perm = gsl_permutation_alloc(nc);
+  gsl_matrix *invProd = gsl_matrix_calloc(nc,nc);
+  int signo;
+
+  gsl_linalg_LU_decomp(prod,perm,&signo);
+  gsl_linalg_LU_invert(prod,perm,invProd);
+
+  //Cálculo del producto (G_T*G)-¹*G_T
+  gsl_matrix *prod2 = gsl_matrix_calloc(nc,n_filas);
+  for (i=0;i<nc;i++)
+  {
+	z = 0;
+	for (j=0;j<n_filas;j++)
+	{
+		for (a=0;a<nc;a++)
+		{
+			x = gsl_matrix_get(invProd,i,a);
+			y = gsl_matrix_get(G_T,a,j);
+			z = z+x*y;
+		}
+		gsl_matrix_set(prod2,i,j,z);
 	}
   }
+
+  //Cálculo del vector de parámetros m = (G_T*G)-¹*G_T*d
+  gsl_vector *m = gsl_vector_calloc(nc);
+  for (i=0;i<nc;i++)
+  {
+	z = 0;
+	for (j=0;j<n_filas;j++)
+	{
+		x = gsl_matrix_get(prod2,i,j);
+		y = gsl_vector_get(d,j);
+		z = z+x*y;
+	}
+	
+	gsl_vector_set(m,i,z);
+	printf("%lf\n",gsl_vector_get(m,i));
+  }
+
+  //Generación del archivo de salida
+  FILE *out;
+  out = fopen("parametros_movimiento.dat","w");
+  fprintf(out, "%lf\n%lf\n%lf\n", gsl_vector_get(m,0), gsl_vector_get(m,1), gsl_vector_get(m,2));
+  fclose(out);
+
+  return 0;
 }
   
   double *load_data(char *filein, int *n_filas, int columna)
@@ -85,7 +142,7 @@ int main (int argc, char **argv)
     
     do
     {
-          fscanf(in,"%f %f\n",&df,&dc);
+          fscanf(in,"%lf %lf\n",&df,&dc);
 	  if (columna == 0)
 	  {         
 		datos[i] = df;
@@ -96,6 +153,8 @@ int main (int argc, char **argv)
 	  }
           i++;
     } while(i<nf);
+
+    fclose(in);
    
     return datos;
   }
