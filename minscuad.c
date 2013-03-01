@@ -2,6 +2,7 @@
   Tarea #3 - Física Computacional
   Andrea Rozo Méndez
   201015972
+  Parte 1
 */
 
 #include <stdlib.h>
@@ -13,6 +14,12 @@ double *load_data(char *filein, int *n_filas, int columna);
 
 int main (int argc, char **argv)
 {
+  if(argc != 2)
+  {
+	printf("Faltan parámetros para correr el programa\n");
+	exit(1);
+  }
+
   char archivo[256];
   strcpy(archivo,argv[1]);
   double *tiempo, *posicion;
@@ -23,7 +30,7 @@ int main (int argc, char **argv)
   int p = 1;
   int i,j,a;
   double x,y,z;
-  
+    
   tiempo = load_data(archivo, &n_filas, t);
   posicion = load_data(archivo, &n_filas, p);
 
@@ -37,7 +44,7 @@ int main (int argc, char **argv)
 	gsl_matrix_set(G,i,0,1);
 	gsl_matrix_set(G,i,1,tiempo[i]);
 	gsl_matrix_set(G,i,2,0.5*tiempo[i]*tiempo[i]);
-
+	
 	gsl_vector_set(d,i,posicion[i]);
 
 	gsl_matrix_set(G_T,0,i,1);
@@ -74,9 +81,9 @@ int main (int argc, char **argv)
   gsl_matrix *prod2 = gsl_matrix_calloc(nc,n_filas);
   for (i=0;i<nc;i++)
   {
-	z = 0;
 	for (j=0;j<n_filas;j++)
 	{
+		z = 0;
 		for (a=0;a<nc;a++)
 		{
 			x = gsl_matrix_get(invProd,i,a);
@@ -100,13 +107,12 @@ int main (int argc, char **argv)
 	}
 	
 	gsl_vector_set(m,i,z);
-	printf("%lf\n",gsl_vector_get(m,i));
   }
 
   //Generación del archivo de salida
   FILE *out;
   out = fopen("parametros_movimiento.dat","w");
-  fprintf(out, "%lf\n%lf\n%lf\n", gsl_vector_get(m,0), gsl_vector_get(m,1), gsl_vector_get(m,2));
+  fprintf(out, "%lf %lf %lf\n", gsl_vector_get(m,0), gsl_vector_get(m,1), gsl_vector_get(m,2));
   fclose(out);
 
   return 0;
