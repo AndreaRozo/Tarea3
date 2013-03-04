@@ -160,7 +160,7 @@ int main (int argc, char **argv)
 	int i = 0;
 	for (i = 0; i < n_filas; i++)
 	{
-		suma += ((vector1[i]-media1)*(vector2[i]*media2));
+		suma += ((vector1[i]-media1)*(vector2[i]-media2));
 	}
 	cov = suma/(n_filas-1);
 	return cov;
