@@ -78,12 +78,9 @@ int main (int argc, char **argv)
   gsl_vector *evec_2 = gsl_vector_calloc(n_columnas);
   gsl_matrix_get_col(evec_2,evec,1);
   gsl_vector *evec_3 = gsl_vector_calloc(n_columnas);
-  gsl_matrix_get_col(evec_3,evec,2);
-  fprintf(out, "%f\n", gsl_vector_get(eval,0));
+  gsl_matrix_get_col(evec_3,evec,2);;
   fprintf(out, "%f %f %f\n", gsl_vector_get(evec_1,0),gsl_vector_get(evec_1,1),gsl_vector_get(evec_1,2));
-  fprintf(out, "%f\n", gsl_vector_get(eval,1));
   fprintf(out, "%f %f %f\n", gsl_vector_get(evec_2,0),gsl_vector_get(evec_2,1),gsl_vector_get(evec_2,2));
-  fprintf(out, "%f\n", gsl_vector_get(eval,2));
   fprintf(out, "%f %f %f\n", gsl_vector_get(evec_3,0),gsl_vector_get(evec_3,1),gsl_vector_get(evec_3,2));
   fclose(out);
 
